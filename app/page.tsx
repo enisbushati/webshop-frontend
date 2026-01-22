@@ -21,7 +21,7 @@ export default function HomePage() {
 
   // Fetch products from Spring Boot
   useEffect(() => {
-    fetch("http://localhost:8080/products")
+    fetch("http://10.76.84.46:8080/products")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch products");
         return res.json();
@@ -31,32 +31,53 @@ export default function HomePage() {
   }, []);
 
   function addToBasket(product: Product) {
-  setBasket((prev) => {
-    const existing = prev.find((item) => item.id === product.id);
-
+  setBasket(prev => {
+    const existing = prev.find(item => item.id === product.id);
     if (existing) {
-      return prev.map((item) =>
+      return prev.map(item =>
         item.id === product.id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       );
     }
-
     return [...prev, { ...product, quantity: 1 }];
   });
 }
 
-  function decreaseQuantity(id: number) {
-  setBasket((prev) =>
+function increaseQuantity(id: number) {
+  setBasket(prev =>
+    prev.map(item =>
+      item.id === id
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    )
+  );
+}
+
+function decreaseQuantity(id: number) {
+  setBasket(prev =>
     prev
-      .map((item) =>
+      .map(item =>
         item.id === id
           ? { ...item, quantity: item.quantity - 1 }
           : item
       )
-      .filter((item) => item.quantity > 0)
+      .filter(item => item.quantity > 0)
   );
 }
+const squareButton: React.CSSProperties = {
+  width: "26px",
+  height: "26px",
+  border: "1px solid #999",
+  background: "#fff",
+  cursor: "pointer",
+  fontSize: "16px",
+  lineHeight: "1",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
 
   if (error) return <h1> X {error}</h1>;
 
@@ -91,17 +112,35 @@ export default function HomePage() {
         <h2>🧺 Basket</h2>
 
         {basket.length === 0 && <p>Basket is empty</p>}
-        {basket.map((item) => (
+        {basket.map(item => (
   <div
     key={item.id}
-    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: "8px",
+    }}
   >
     <span>
-      {item.name} – {item.price} € × {item.quantity}
+      {item.name} – {item.price} € x {item.quantity}
     </span>
 
-    <button onClick={() => addToBasket(item)}>+</button>
-    <button onClick={() => decreaseQuantity(item.id)}>-</button>
+    <div style={{ display: "flex", gap: "6px" }}>
+      <button
+        onClick={() => increaseQuantity(item.id)}
+        style={squareButton}
+      >
+        +
+      </button>
+
+      <button
+        onClick={() => decreaseQuantity(item.id)}
+        style={squareButton}
+      >
+        −
+      </button>
+    </div>
   </div>
 ))}
 
