@@ -8,20 +8,32 @@ type Product = {
   category: string;
   price: number;
 };
+
 type BasketItem = Product & {
   quantity: number;
 };
-
-
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [basket, setBasket] = useState<BasketItem[]>([]);
   const [error, setError] = useState("");
+  const squareButton: React.CSSProperties = {
+    width: "26px",
+    height: "26px",
+    border: "1px solid #999",
+    background: "#fff",
+    cursor: "pointer",
+    fontSize: "16px",
+    lineHeight: "1",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
 
   // Fetch products from Spring Boot
   useEffect(() => {
-    fetch("http://10.76.84.46:8080/products")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch products");
         return res.json();
@@ -30,7 +42,7 @@ export default function HomePage() {
       .catch((err) => setError(err.message));
   }, []);
 
-  function addToBasket(product: Product) {
+function addToBasket(product: Product) {
   setBasket(prev => {
     const existing = prev.find(item => item.id === product.id);
     if (existing) {
@@ -43,7 +55,6 @@ export default function HomePage() {
     return [...prev, { ...product, quantity: 1 }];
   });
 }
-
 function increaseQuantity(id: number) {
   setBasket(prev =>
     prev.map(item =>
@@ -53,7 +64,6 @@ function increaseQuantity(id: number) {
     )
   );
 }
-
 function decreaseQuantity(id: number) {
   setBasket(prev =>
     prev
@@ -65,19 +75,6 @@ function decreaseQuantity(id: number) {
       .filter(item => item.quantity > 0)
   );
 }
-const squareButton: React.CSSProperties = {
-  width: "26px",
-  height: "26px",
-  border: "1px solid #999",
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: "16px",
-  lineHeight: "1",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
 
   if (error) return <h1> X {error}</h1>;
 
@@ -144,18 +141,21 @@ const squareButton: React.CSSProperties = {
   </div>
 ))}
 
-
-
         {basket.length > 0 && (
-          <>
-            <hr />
-            <strong>
-              Total:{" "}
-              {basket.reduce((sum, item) => sum + item.price * item.quantity, 0)} €
-            </strong>
-          </>
-        )}
+  <>
+    <hr />
+    <strong>
+      Total:{" "}
+      {basket.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      )} €
+    </strong>
+  </>
+)}
       </div>
     </main>
   );
 }
+
+
