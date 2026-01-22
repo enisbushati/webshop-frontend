@@ -8,10 +8,15 @@ type Product = {
   category: string;
   price: number;
 };
+type BasketItem = Product & {
+  quantity: number;
+};
+
+
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [basket, setBasket] = useState<Product[]>([]);
+  const [basket, setBasket] = useState<BasketItem[]>([]);
   const [error, setError] = useState("");
 
   // Fetch products from Spring Boot
@@ -26,12 +31,32 @@ export default function HomePage() {
   }, []);
 
   function addToBasket(product: Product) {
-    setBasket((prev) => [...prev, product]);
-  }
+  setBasket((prev) => {
+    const existing = prev.find((item) => item.id === product.id);
 
-  function removeFromBasket(index: number) {
-    setBasket((prev) => prev.filter((_, i) => i !== index));
-  }
+    if (existing) {
+      return prev.map((item) =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    }
+
+    return [...prev, { ...product, quantity: 1 }];
+  });
+}
+
+  function decreaseQuantity(id: number) {
+  setBasket((prev) =>
+    prev
+      .map((item) =>
+        item.id === id
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+      .filter((item) => item.quantity > 0)
+  );
+}
 
   if (error) return <h1> X {error}</h1>;
 
@@ -66,26 +91,20 @@ export default function HomePage() {
         <h2>🧺 Basket</h2>
 
         {basket.length === 0 && <p>Basket is empty</p>}
-        {basket.map((item, index) => (
-          <div key={index} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <span>
-              {item.name} – {item.price} €
-            </span>
-            <button
-              onClick={() => removeFromBasket(index)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "12px",
-                padding: 0,
-              }}
-              aria-label="Remove from basket"
-            >
-              x
-            </button>
-          </div>
-        ))}
+        {basket.map((item) => (
+  <div
+    key={item.id}
+    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+  >
+    <span>
+      {item.name} – {item.price} € × {item.quantity}
+    </span>
+
+    <button onClick={() => addToBasket(item)}>+</button>
+    <button onClick={() => decreaseQuantity(item.id)}>-</button>
+  </div>
+))}
+
 
 
         {basket.length > 0 && (
@@ -93,7 +112,7 @@ export default function HomePage() {
             <hr />
             <strong>
               Total:{" "}
-              {basket.reduce((sum, item) => sum + item.price, 0)} €
+              {basket.reduce((sum, item) => sum + item.price * item.quantity, 0)} €
             </strong>
           </>
         )}
